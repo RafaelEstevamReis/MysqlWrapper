@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0;NET45;net5.0</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
+    <Version>0.5.100</Version>
+    <Authors>RafaelEstevam.net</Authors>
+    <Company>Rafael Estevam</Company>
+    <Description>A simple to use Mysql Wrapper</Description>
+    <PackageProjectUrl>https://github.com/RafaelEstevamReis/MysqlWrapper</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/RafaelEstevamReis/MysqlWrapper.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>MySql MariaDB</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReleaseNotes>
+      Paired with commit c69fcda
+      https://github.com/RafaelEstevamReis/MysqlWrapper
+    </PackageReleaseNotes>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU'">
+    <DocumentationFile>..\Simple.MySql.xml</DocumentationFile>
+  </PropertyGroup>
+
+</Project>
