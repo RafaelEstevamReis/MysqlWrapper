@@ -10,19 +10,19 @@ namespace Simple.MySql.Schema
     class TableMapper : IColumnMapper
     {
         private readonly MysqlDB db;
-        private readonly ReaderCachedCollection typeCollection;
+        private readonly ReaderCachedCollection cachedTypes;
         private readonly List<Table> tables;
 
         public TableMapper(MysqlDB mysqlDB, ReaderCachedCollection typeCollection)
         {
-            this.db = mysqlDB;
-            this.typeCollection = typeCollection;
-            this.tables = new List<Table>();
+            db = mysqlDB;
+            cachedTypes = typeCollection;
+            tables = new List<Table>();
         }
 
         public IColumnMapper Add<T>() where T : new()
         {
-            var info = typeCollection.GetInfo<T>();
+            var info = cachedTypes.GetInfo<T>();
             tables.Add(Table.FromType(info));
             return this;
         }
