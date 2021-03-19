@@ -88,12 +88,6 @@ namespace Simple.MySql
             return Enumerable.Range(0, reader.FieldCount)
                              .Select(idx => reader.GetName(idx))
                              .ToArray();
-
-            //return reader.GetSchemaTable()
-            //    .Rows
-            //    .Cast<DataRow>()
-            //    .Select(r => (string)r["ColumnName"])
-            //    .ToArray();
         }
 
         /// <summary>
@@ -235,12 +229,6 @@ namespace Simple.MySql
                 // write new guid on object
                 p.SetValue(parameters, value);
             }
-        }
-        private static IEnumerable<string> getNames(TypeInfo type)
-        {
-            return type.Items
-                       .Where(o => !o.Is(DatabaseWrapper.ColumnAttributes.Ignore))
-                       .Select(o => o.Name);
         }
     }
 }
