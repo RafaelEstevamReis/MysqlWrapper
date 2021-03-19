@@ -85,11 +85,15 @@ namespace Simple.MySql
 
         private string[] getSchemaColumns(IDataReader reader)
         {
-            return reader.GetSchemaTable()
-                .Rows
-                .Cast<DataRow>()
-                .Select(r => (string)r["ColumnName"])
-                .ToArray();
+            return Enumerable.Range(0, reader.FieldCount)
+                             .Select(idx => reader.GetName(idx))
+                             .ToArray();
+
+            //return reader.GetSchemaTable()
+            //    .Rows
+            //    .Cast<DataRow>()
+            //    .Select(r => (string)r["ColumnName"])
+            //    .ToArray();
         }
 
         /// <summary>
