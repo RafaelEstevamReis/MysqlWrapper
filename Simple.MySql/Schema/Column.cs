@@ -93,10 +93,11 @@ namespace Simple.MySql.Schema
                 }
             }
 
-            bool isAI = isKey && (dataType == MySqlDbType.Int32
-                                  || dataType == MySqlDbType.Int64
-                                  || dataType == MySqlDbType.UInt32
-                                  || dataType == MySqlDbType.UInt64);
+            bool isAI = isKey && (dataType == MySqlDbType.Int
+                                  || dataType == MySqlDbType.TinyInt
+                                  || dataType == MySqlDbType.SmallInt
+                                  || dataType == MySqlDbType.MediumInt
+                                  || dataType == MySqlDbType.BigInt);
 
             // create
             return new Column()
@@ -137,11 +138,11 @@ namespace Simple.MySql.Schema
             else if (info.Type == typeof(bool)) dataType = MySqlDbType.Bit;
             else if (info.Type == typeof(DateTime)) dataType = MySqlDbType.DateTime;
             // Other
-            else if (info.Type == typeof(Guid)) dataType = MySqlDbType.Guid;
+            else if (info.Type == typeof(Guid)) dataType = MySqlDbType.TinyBlob;
             else if (info.Type == typeof(Color)) dataType = MySqlDbType.TinyBlob;
             else if (info.Type == typeof(byte[])) dataType = MySqlDbType.LongBlob;
             //Int enums
-            else if (info.Type.IsEnum) dataType = MySqlDbType.Int32;
+            else if (info.Type.IsEnum) dataType = MySqlDbType.Int;
             else
             {
                 throw new Exception($"Type {info.Type.Name} is not supported on field {info.Name}");
