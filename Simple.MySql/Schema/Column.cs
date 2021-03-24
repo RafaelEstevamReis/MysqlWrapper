@@ -6,6 +6,7 @@ using MySql.Data.MySqlClient;
 using Simple.DatabaseWrapper.Attributes;
 using Simple.DatabaseWrapper.Interfaces;
 using Simple.DatabaseWrapper.TypeReader;
+using Simple.MySql.Attributes;
 
 namespace Simple.MySql.Schema
 {
@@ -162,6 +163,20 @@ namespace Simple.MySql.Schema
 
         private static Column createColumnWithType(TypeItemInfo info)
         {
+            var att = info.Type.GetCustomAttributes(true)
+                               .OfType<DataTypeAttribute>()
+                               .FirstOrDefault();
+            if (att != null)
+            {
+                return new Column()
+                {
+                    ColumnName = info.Name,
+                    MySqlDbType = att.Type,
+                    Unsigned = att.Unsigned,
+                    Length = att.Len
+                };
+            }
+
             MySqlDbType dataType;
             bool unsigned = false;
             // Texts
