@@ -46,18 +46,52 @@ namespace Simple.MySql.Schema
         /// Default value on NULL
         /// </summary>
         public object DefaultValue { get; set; }
+        public bool Unsigned { get; set; }
+        public int Length { get; set; }
+
         /// <summary>
         /// Create a column schema from TypeInfoItem
         /// </summary>
         public static IColumn FromInfo(TypeInfo info, TypeItemInfo pi)
         {
-            MySqlDbType dataType = mapType(pi);
+            var column = createColumnWithType(pi);
 
             //Props
-            bool isKey = pi.Is(DatabaseWrapper.ColumnAttributes.PrimaryKey);
+            column.IsPK = pi.Is(DatabaseWrapper.ColumnAttributes.PrimaryKey);
+            // Is AI ?
+            if (column.IsPK)
+            {
+                column.IsAI = (column.MySqlDbType == MySqlDbType.Int
+                             || column.MySqlDbType == MySqlDbType.TinyInt
+                             || column.MySqlDbType == MySqlDbType.SmallInt
+                             || column.MySqlDbType == MySqlDbType.MediumInt
+                             || column.MySqlDbType == MySqlDbType.BigInt);
+            }
+
+            column.IsUnique = pi.Is(DatabaseWrapper.ColumnAttributes.Unique);
+            column.AllowNulls = checkAllowNulls(pi, column);
+
+            column.DefaultValue = null;
+            foreach (var attr in pi.DBAttributes)
+            {
+                if (attr.Attribute is DefaultValueAttribute def)
+                {
+                    column.DefaultValue = def;
+                    break;
+                }
+            }
+
+            return column;
+        }
+
+        private static bool checkAllowNulls(TypeItemInfo pi, Column column)
+        {
+            // was specified ?
+            if (pi.Is(DatabaseWrapper.ColumnAttributes.AllowNull)) return true;
+            if (pi.Is(DatabaseWrapper.ColumnAttributes.NotNull)) return false;
+
             // Auto select
-            bool allowNulls;
-            switch (dataType)
+            switch (column.MySqlDbType)
             {
                 case MySqlDbType.Text:
                 case MySqlDbType.TinyText:
@@ -68,58 +102,16 @@ namespace Simple.MySql.Schema
                 case MySqlDbType.TinyBlob:
                 case MySqlDbType.MediumBlob:
                 case MySqlDbType.LongBlob:
-                    allowNulls = true;
-                    break;
-
-                default:
-                    allowNulls = false;
-                    break;
+                    return true;
             }
-
-
-            // was specified ?
-            if (pi.Is(DatabaseWrapper.ColumnAttributes.AllowNull)) allowNulls = true;
-            if (pi.Is(DatabaseWrapper.ColumnAttributes.NotNull)) allowNulls = false;
-
-            bool isUnique = pi.Is(DatabaseWrapper.ColumnAttributes.Unique);
-
-            object defVal = null;
-            foreach (var attr in pi.DBAttributes)
-            {
-                if (attr.Attribute is DefaultValueAttribute def)
-                {
-                    defVal = def;
-                    break;
-                }
-            }
-
-            bool isAI = isKey && (dataType == MySqlDbType.Int
-                                  || dataType == MySqlDbType.TinyInt
-                                  || dataType == MySqlDbType.SmallInt
-                                  || dataType == MySqlDbType.MediumInt
-                                  || dataType == MySqlDbType.BigInt);
-
-            // create
-            return new Column()
-            {
-                ColumnName = pi.Name,
-                AllowNulls = allowNulls,
-                NativeType = pi.Type,
-                MySqlDbType = dataType,
-                DefaultValue = defVal,
-                IsPK = isKey,
-                IsAI = isAI,
-                IsUnique = isUnique,
-            };
+            // default
+            return false;
         }
 
-        /// <summary>
-        /// Creates a column schema from a Type
-        /// </summary>
-
-        private static MySqlDbType mapType(TypeItemInfo info)
+        private static Column createColumnWithType(TypeItemInfo info)
         {
             MySqlDbType dataType;
+            bool unsigned = false;
             // Texts
             if (info.Type == typeof(string)) dataType = MySqlDbType.Text;
             else if (info.Type == typeof(Uri)) dataType = MySqlDbType.Text;
@@ -129,13 +121,25 @@ namespace Simple.MySql.Schema
             // Fixed FloatPoint
             else if (info.Type == typeof(decimal)) dataType = MySqlDbType.Decimal;
             // Integers
-            else if (info.Type == typeof(byte)) dataType = MySqlDbType.Byte;
-            else if (info.Type == typeof(int)) dataType = MySqlDbType.Int32;
-            else if (info.Type == typeof(uint)) dataType = MySqlDbType.UInt32;
-            else if (info.Type == typeof(long)) dataType = MySqlDbType.Int64;
-            else if (info.Type == typeof(ulong)) dataType = MySqlDbType.UInt64;
+            else if (info.Type == typeof(byte))
+            {
+                dataType = MySqlDbType.TinyInt;
+                unsigned = true;
+            }
+            else if (info.Type == typeof(int)) dataType = MySqlDbType.Int;
+            else if (info.Type == typeof(uint))
+            {
+                dataType = MySqlDbType.Int;
+                unsigned = true;
+            }
+            else if (info.Type == typeof(long)) dataType = MySqlDbType.BigInt;
+            else if (info.Type == typeof(ulong))
+            {
+                dataType = MySqlDbType.BigInt;
+                unsigned = true;
+            }
             // Others Mapped of NUMERIC
-            else if (info.Type == typeof(bool)) dataType = MySqlDbType.Bit;
+            else if (info.Type == typeof(bool)) dataType = MySqlDbType.Bool;
             else if (info.Type == typeof(DateTime)) dataType = MySqlDbType.DateTime;
             // Other
             else if (info.Type == typeof(Guid)) dataType = MySqlDbType.TinyBlob;
@@ -147,7 +151,13 @@ namespace Simple.MySql.Schema
             {
                 throw new Exception($"Type {info.Type.Name} is not supported on field {info.Name}");
             }
-            return dataType;
+
+            return new Column()
+            {
+                ColumnName = info.Name,
+                MySqlDbType = dataType,
+                Unsigned = unsigned,
+            };
         }
 
         /// <summary>
@@ -238,11 +248,11 @@ namespace Simple.MySql.Schema
                 case MySqlDbType.Float:
                 case MySqlDbType.Double:
                 case MySqlDbType.Decimal:
-                case MySqlDbType.Byte:
-                case MySqlDbType.Int32:
-                case MySqlDbType.UInt32:
-                case MySqlDbType.Int64:
-                case MySqlDbType.UInt64:
+                case MySqlDbType.Int:
+                case MySqlDbType.TinyInt:
+                case MySqlDbType.SmallInt:
+                case MySqlDbType.MediumInt:
+                case MySqlDbType.BigInt:
                     column.DefaultValue = 0;
                     break;
                 // NotNull text, is empty
