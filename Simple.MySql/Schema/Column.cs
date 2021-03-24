@@ -62,14 +62,15 @@ namespace Simple.MySql.Schema
 
             sb.Append(ColumnName);
             sb.Append(" ");
-
+                     
             sb.Append(MySqlDbType.ToString());
+            if(Length > 0) sb.Append($"({Length}) ");
             sb.Append(" ");
+            if (Unsigned) sb.Append("UNSIGNED ");
 
             if (IsPK) sb.Append("PRIMARY KEY ");
             if (IsAI) sb.Append("AUTOINCREMENT ");
             if (IsUnique) sb.Append("UNIQUE ");
-
             if (!AllowNulls) sb.Append("NOT NULL ");
 
             if (DefaultValue != null)
@@ -159,29 +160,6 @@ namespace Simple.MySql.Schema
             return column;
         }
 
-        private static bool checkAllowNulls(TypeItemInfo pi, Column column)
-        {
-            // was specified ?
-            if (pi.Is(DatabaseWrapper.ColumnAttributes.AllowNull)) return true;
-            if (pi.Is(DatabaseWrapper.ColumnAttributes.NotNull)) return false;
-
-            // Auto select
-            switch (column.MySqlDbType)
-            {
-                case MySqlDbType.Text:
-                case MySqlDbType.TinyText:
-                case MySqlDbType.MediumText:
-                case MySqlDbType.LongText:
-
-                case MySqlDbType.Blob:
-                case MySqlDbType.TinyBlob:
-                case MySqlDbType.MediumBlob:
-                case MySqlDbType.LongBlob:
-                    return true;
-            }
-            // default
-            return false;
-        }
         private static Column createColumnWithType(TypeItemInfo info)
         {
             MySqlDbType dataType;
@@ -232,6 +210,29 @@ namespace Simple.MySql.Schema
                 MySqlDbType = dataType,
                 Unsigned = unsigned,
             };
+        }
+        private static bool checkAllowNulls(TypeItemInfo pi, Column column)
+        {
+            // was specified ?
+            if (pi.Is(DatabaseWrapper.ColumnAttributes.AllowNull)) return true;
+            if (pi.Is(DatabaseWrapper.ColumnAttributes.NotNull)) return false;
+
+            // Auto select
+            switch (column.MySqlDbType)
+            {
+                case MySqlDbType.Text:
+                case MySqlDbType.TinyText:
+                case MySqlDbType.MediumText:
+                case MySqlDbType.LongText:
+
+                case MySqlDbType.Blob:
+                case MySqlDbType.TinyBlob:
+                case MySqlDbType.MediumBlob:
+                case MySqlDbType.LongBlob:
+                    return true;
+            }
+            // default
+            return false;
         }
         private static void setReasonableDefault(Column column)
         {
