@@ -3,6 +3,11 @@
     public enum MySqlDbType
     {
         /// <summary>
+        /// These types are synonyms for TINYINT(1). A value of zero is considered false. 
+        /// Nonzero values are considered true
+        /// </summary>
+        Bool,
+        /// <summary>
         ///  normal-sized integer that can be signed or unsigned. 
         ///  If signed, the allowable range is from -2147483648 to 2147483647. 
         ///  If unsigned, the allowable range is from 0 to 4294967295. 
